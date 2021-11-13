@@ -14,7 +14,7 @@ class nn_linear_layer:
     ######
     ## Q1
     def forward(self,x):
-        return ...
+        return x @ self.W.T + self.b.T
     
     ######
     ## Q2
@@ -37,7 +37,7 @@ class nn_activation_layer:
     ######
     ## Q3
     def forward(self,x):
-        return ...
+        return 1 / (1 + np.exp(-x))
     
     ######
     ## Q4
@@ -51,7 +51,9 @@ class nn_softmax_layer:
     ######
     ## Q5
     def forward(self,x):
-        return ...
+        exp_scores = np.exp(x)
+        exp_scores_sum = exp_scores.sum(axis=1).reshape(-1, 1)
+        return exp_scores / exp_scores_sum
     
     ######
     ## Q6
@@ -65,7 +67,9 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        return ...
+        dataset_size = np.shape(x)[0]
+        real_scores = x[np.arange(dataset_size), y.reshape(dataset_size,)]
+        return np.log(real_scores).sum() / (- dataset_size)
         
     ######
     ## Q8
@@ -82,8 +86,8 @@ num_test=40
 ## learning rate (lr)and number of gradient descent steps (num_gd_step)
 ## This part is not graded (there is no definitive answer).
 ## You can set this hyperparameters through experiments.
-lr=...
-num_gd_step=...
+lr=1
+num_gd_step=1000
 
 # dataset size
 batch_size=4*num_d
