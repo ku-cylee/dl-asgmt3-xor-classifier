@@ -74,7 +74,10 @@ class nn_cross_entropy_layer:
     ######
     ## Q8
     def backprop(self,x,y):
-        return ...
+        dataset_size = np.shape(x)[0]
+        y_stretched = y.reshape(dataset_size,)
+        y_extended = np.array([y_stretched, 1 - y_stretched]).T
+        return np.where(y_extended == 1, - 1 / x, 0)
 
 # number of data points for each of (0,0), (0,1), (1,0) and (1,1)
 num_d=5
