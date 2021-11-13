@@ -58,7 +58,10 @@ class nn_softmax_layer:
     ######
     ## Q6
     def backprop(self,x,dLdy):
-        return ...
+        [exp_x1, exp_x2] = np.exp(x).T
+        dydx_elmt = exp_x1 * exp_x2 / (exp_x1 + exp_x2) ** 2
+        dydx = np.tile(dydx_elmt, (2,2,1)).T
+        return dLdy @ dydx
 
 class nn_cross_entropy_layer:
     def __init__(self):
