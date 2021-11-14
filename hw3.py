@@ -20,8 +20,17 @@ class nn_linear_layer:
     ## Q2
     ## returns three parameters
     def backprop(self,x,dLdy):
-        ...
-        return dLdW,dLdb,dLdx
+        output_size, input_size = np.shape(self.W)
+
+        dLdW = dLdy.T @ x
+
+        dydb = np.eye(output_size)
+        dLdb = (dLdy @ dydb).sum(axis=0).reshape(-1, 1) / input_size
+
+        dydx = self.W
+        dLdx = dLdy @ dydx
+
+        return dLdW, dLdb, dLdx
 
     def update_weights(self,dLdW,dLdb):
 
