@@ -60,8 +60,8 @@ class nn_softmax_layer:
     def backprop(self,x,dLdy):
         [exp_x1, exp_x2] = np.exp(x).T
         dydx_elmt = exp_x1 * exp_x2 / (exp_x1 + exp_x2) ** 2
-        dydx = np.tile(dydx_elmt, (2,2,1)).T
-        return dLdy @ dydx
+        dydx = np.tile(dydx_elmt, (2, 2, 1)).T
+        return (dLdy @ dydx).sum(axis=0)
 
 class nn_cross_entropy_layer:
     def __init__(self):
@@ -70,15 +70,15 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        dataset_size = np.shape(x)[0]
-        real_scores = x[np.arange(dataset_size), y.reshape(dataset_size,)]
-        return np.log(real_scores).sum() / (- dataset_size)
+        N = np.shape(x)[0]
+        real_scores = x[np.arange(N), y.reshape(N,)]
+        return np.log(real_scores).sum() / (-N)
         
     ######
     ## Q8
     def backprop(self,x,y):
-        dataset_size = np.shape(x)[0]
-        y_stretched = y.reshape(dataset_size,)
+        N = np.shape(x)[0]
+        y_stretched = y.reshape(N,)
         y_extended = np.array([y_stretched, 1 - y_stretched]).T
         return np.where(y_extended == 1, - 1 / x, 0)
 
