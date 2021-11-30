@@ -20,16 +20,9 @@ class nn_linear_layer:
     ## Q2
     ## returns three parameters
     def backprop(self,x,dLdy):
-        output_size, input_size = np.shape(self.W)
-
         dLdW = dLdy.T @ x
-
-        dydb = np.eye(output_size)
-        dLdb = (dLdy @ dydb).sum(axis=0).reshape(-1, 1) / input_size
-
-        dydx = self.W
-        dLdx = dLdy @ dydx
-
+        dLdb = dLdy.sum(axis=0)[None, :]
+        dLdx = dLdy @ self.W
         return dLdW, dLdb, dLdx
 
     def update_weights(self,dLdW,dLdb):
@@ -51,7 +44,8 @@ class nn_activation_layer:
     ######
     ## Q4
     def backprop(self,x,dLdy):
-        return ...
+        sigmoid = self.forward(x)
+        return dLdy * sigmoid * (1 - sigmoid)
 
 
 class nn_softmax_layer:
@@ -67,10 +61,9 @@ class nn_softmax_layer:
     ######
     ## Q6
     def backprop(self,x,dLdy):
-        [exp_x1, exp_x2] = np.exp(x).T
-        dydx_elmt = exp_x1 * exp_x2 / (exp_x1 + exp_x2) ** 2
-        dydx = np.tile(dydx_elmt, (2, 2, 1)).T
-        return (dLdy @ dydx).sum(axis=0)
+        y = self.forward(x)
+        y_prods = y[:, :, None] @ y[:, None, :]
+        return dLdy * y - np.squeeze(dLdy[:, None, :] @ y_prods, axis=1)
 
 class nn_cross_entropy_layer:
     def __init__(self):
@@ -79,17 +72,21 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        N = np.shape(x)[0]
-        real_scores = x[np.arange(N), y.reshape(N,)]
-        return np.log(real_scores).sum() / (-N)
+        bch_size, _ = x.shape
+        real_scores = x[np.arange(bch_size), np.squeeze(y, axis=-1)]
+        return - np.average(np.log(real_scores))
         
     ######
     ## Q8
     def backprop(self,x,y):
-        N = np.shape(x)[0]
-        y_stretched = y.reshape(N,)
-        y_extended = np.array([y_stretched, 1 - y_stretched]).T
-        return np.where(y_extended == 1, - 1 / x, 0)
+        bch_size, _ = x.shape
+        bch_size_neginv = - 1 / bch_size
+
+        y_mtx = np.zeros_like(x)
+        for b_idx in range(bch_size):
+            y_mtx[b_idx, y[b_idx]] = bch_size_neginv
+
+        return y_mtx / x
 
 # number of data points for each of (0,0), (0,1), (1,0) and (1,1)
 num_d=5
